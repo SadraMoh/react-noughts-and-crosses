@@ -16,20 +16,29 @@ const firstState: History = {
 };
 
 function App() {
-  // to track every played turn
+  /** history stack to track every move */
   const [history, setHistory] = useState<History[]>([firstState]);
 
+  /** the selected state */
   const [currentState, setCurrentState] = useState(firstState);
 
+  /**
+   * move to a specific entry in the stack
+   * @param entry the entry to move to
+   */
   function moveToEntry(entry: History) {
-    const selectedIndex = history.indexOf(entry);
-    setCurrentState(history[selectedIndex]);
+    setCurrentState(entry);
   }
 
+  /**
+   * run when a cell is updated
+   * @param mark new mark
+   */
   function cellChanged(mark: CellMark, i: number, j: number) {
     // skip if game has ended
     if (Boolean(currentState.winner)) return;
 
+    // decouple and then clone inner arrays from the current state and prepare them for the new state
     let nextMap: Map = [
       [...currentState.map[0]],
       [...currentState.map[1]],
@@ -37,28 +46,32 @@ function App() {
     ];
     nextMap[i][j] = mark;
 
+    // toggle turn
     const nextTurn: CellMark =
       currentState.turn == "cross" ? "nought" : "cross";
+
+    // check for win
+    let winner: CellMark = "";
+    const flattenedMap = nextMap.flat();
+    for (const scenario of winScenarios)
+      if (scenario.every((cell) => flattenedMap[cell] === currentState.turn))
+        winner = currentState.turn;
 
     const nextState: History = {
       map: nextMap,
       turn: nextTurn,
-      winner: "",
+      winner,
     };
 
-    // check for win
-    const flattenedMap = nextMap.flat();
-    for (const scenario of winScenarios)
-      if (scenario.every((cell) => flattenedMap[cell] === currentState.turn))
-        nextState.winner = currentState.turn;
-
+    // clear items after the selected state from history stack
     setHistory((prevHistory) =>
       prevHistory.slice(0, prevHistory.indexOf(currentState) + 1)
     );
+    // add nextState to the history stack
     setHistory((prevHistory) => prevHistory.concat(nextState));
 
+    // update current state
     setCurrentState(nextState);
-    historyPlotter(history);
   }
 
   return (
@@ -73,22 +86,6 @@ function App() {
       </div>
     </>
   );
-}
-
-function historyPlotter(history: History[]) {
-  let str = "";
-
-  const maps = history.map((entry) => entry.map);
-  maps.forEach((map) => {
-    str += `\n ${map[0][0]} | ${map[0][1]} | ${map[0][2]}`;
-    str += `\n ------`;
-    str += `\n ${map[1][0]} | ${map[1][1]} | ${map[1][2]}`;
-    str += `\n ------`;
-    str += `\n ${map[2][0]} | ${map[2][1]} | ${map[2][2]}`;
-    str += `\n `;
-  });
-
-  console.log(str);
 }
 
 export default App;

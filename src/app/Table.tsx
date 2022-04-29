@@ -1,7 +1,6 @@
-import { useState } from "react";
 import Cell from "./Cell";
 import { CellMark } from "./model/CellMark";
-import { winScenarios, Map, History } from "./model/Game";
+import { History } from "./model/Game";
 
 type TableProps = {
   gameState: History;

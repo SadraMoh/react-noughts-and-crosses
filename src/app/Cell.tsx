@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { CellMark, CellMarkSymbol, markToSymbol } from "./model/CellMark";
 
 type CellProps = {
@@ -8,7 +7,7 @@ type CellProps = {
 };
 
 function Cell({ turn, mark, turnPlayed }: CellProps) {
-  
+
   function cellClick() {
     turnPlayed(turn);
   }
