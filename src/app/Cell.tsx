@@ -8,8 +8,8 @@ type CellProps = {
 };
 
 function Cell({ turn, mark, turnPlayed }: CellProps) {
+  
   function cellClick() {
-    mark = turn;
     turnPlayed(turn);
   }
 

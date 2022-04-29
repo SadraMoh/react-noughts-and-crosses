@@ -19,54 +19,76 @@ function App() {
   // to track every played turn
   const [history, setHistory] = useState<History[]>([firstState]);
 
-  // the selected history
-  const [currentEntry, setCurrentEntry] = useState<History>(firstState);
+  const [currentState, setCurrentState] = useState(firstState);
 
   function moveToEntry(entry: History) {
     const selectedIndex = history.indexOf(entry);
-
-    setCurrentEntry(entry);
+    setCurrentState(history[selectedIndex]);
   }
 
   function cellChanged(mark: CellMark, i: number, j: number) {
     // skip if game has ended
-    if (Boolean(currentEntry.winner)) return;
+    if (Boolean(currentState.winner)) return;
 
-    const nextMap: Map = [...currentEntry.map];
+    let nextMap: Map = [
+      [...currentState.map[0]],
+      [...currentState.map[1]],
+      [...currentState.map[2]],
+    ];
     nextMap[i][j] = mark;
 
-    debugger
+    const nextTurn: CellMark =
+      currentState.turn == "cross" ? "nought" : "cross";
 
-    const nextEntry: History = {
+    const nextState: History = {
       map: nextMap,
-      turn: currentEntry.turn === "cross" ? "nought" : "cross",
+      turn: nextTurn,
       winner: "",
     };
 
     // check for win
-    const flattenedMap = nextEntry.map.flat();
-    for (const scenario of winScenarios) {
-      if (scenario.every((cell) => flattenedMap[cell] === currentEntry.turn))
-        nextEntry.winner = currentEntry.turn;
-    }
+    const flattenedMap = nextMap.flat();
+    for (const scenario of winScenarios)
+      if (scenario.every((cell) => flattenedMap[cell] === currentState.turn))
+        nextState.winner = currentState.turn;
 
-    // update state
-    setHistory([...history, nextEntry]);
-    setCurrentEntry(nextEntry);
+    setHistory((prevHistory) =>
+      prevHistory.slice(0, prevHistory.indexOf(currentState) + 1)
+    );
+    setHistory((prevHistory) => prevHistory.concat(nextState));
+
+    setCurrentState(nextState);
+    historyPlotter(history);
   }
 
   return (
     <>
-      {Boolean(currentEntry.winner) && <h1>{currentEntry.winner} WINS!</h1>}
+      {Boolean(currentState.winner) && <h1>{currentState.winner} WINS!</h1>}
       <div className="row">
         <Table
-          gameState={currentEntry}
+          gameState={currentState}
           cellChanged={(entry, i, j) => cellChanged(entry, i, j)}
         />
         <Log history={history} entrySelected={(entry) => moveToEntry(entry)} />
       </div>
     </>
   );
+}
+
+function historyPlotter(history: History[]) {
+  let str = "";
+
+  const maps = history.map((entry) => entry.map);
+  maps.forEach((map) => {
+    str += `\n ${map[0][0]} | ${map[0][1]} | ${map[0][2]}`;
+    str += `\n ------`;
+    str += `\n ${map[1][0]} | ${map[1][1]} | ${map[1][2]}`;
+    str += `\n ------`;
+    str += `\n ${map[2][0]} | ${map[2][1]} | ${map[2][2]}`;
+    str += `\n `;
+  });
+
+  console.log(str);
 }
 
 export default App;
